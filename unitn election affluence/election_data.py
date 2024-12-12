@@ -8,6 +8,7 @@ plt.rcParams["figure.figsize"] = (10,5) #size of the window set to 10x5
 
 df=pd.DataFrame(data) #creating a dataframe with the data read above
 groups = list(df.iloc[:,0])
+groups.reverse()
 # ['1996','1998','2000','2002','2004','2006','2008', '2010','2012','2014','2016','2018', '2020','2022','2024']
 
 #15 values
