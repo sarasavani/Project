@@ -1,5 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.pyplot import yticks
+
 
 #converts seconds into string
 def seconds_to_time_str(total_seconds):
@@ -15,15 +17,6 @@ def seconds_to_time_str(total_seconds):
     else:
         return f"{minutes}:{seconds:02}.{milliseconds:03}"
 
-
-def time_to_seconds(time_str):
-    # Aggiungi un controllo per il formato
-    if ':' not in time_str:
-        raise ValueError(f"Invalid time format: {time_str}")
-    minutes, rest = time_str.split(':')
-    seconds, milliseconds = rest.split('.')
-    total_seconds = int(minutes) * 60 + int(seconds) + int(milliseconds) / 1000
-    return total_seconds
 #given a driverId as an input
 #returns a list with all the races he competed in
 def select_races_list(driver_input,lap_times,races) : #select all the races that a driver has done
@@ -246,6 +239,7 @@ def compute_data(race_input, driver_input, races, drivers, lap_times, num, flg) 
             sorted_data = sorted(zip(laps[i], times[i], times_in_seconds), key=lambda x: x[2])
             #divide the three elements (the last one is not used)
             laps_tmp, time_tmp, ignore_values = zip(*sorted_data)  # Scomponi sorted_data
+
             laps_sorted.append(laps_tmp)  # Aggiungi laps alla lista
             times_sorted.append(time_tmp)  # Aggiungi times alla lista
 
@@ -262,30 +256,74 @@ def compute_data(race_input, driver_input, races, drivers, lap_times, num, flg) 
         else:
             i = i + 1
 
-    if flg==0:
+
+    if flg==1:
+        create_plot(laps_sorted, times_sorted, num, race_name, race_year, driver_name, driver_surname)
+
+    elif flg==0:
         for j in range(num):
             stat_driver(driver_name[j],driver_surname[j],laps_sorted[j],times_sorted[j],laps_row[j])
 
-    #create_plot(laps_sorted,times_sorted,data)
 
-#create the plot
-def create_plot(laps_sorted,times_sorted,data) :
-    # create the barplot
-    plt.rcParams["figure.figsize"] = (80, 60)  # size of the window set to bigger than the screen (so it's full size :) )
-    plt.figure(figsize=(15, 10))
-    plt.bar(laps_sorted, times_sorted, color='red', edgecolor='black')
 
-    str_graph = ("Times for Lap for " + data[0] + " " + data[1] +
-                 " at The " + data[2] + " " + data[3])
-    plt.title(str_graph, fontsize=14)
-    plt.xlabel("Lap number", fontsize=12)
-    plt.ylabel("Lap time", fontsize=12)
-    plt.xticks(ticks=laps_sorted)  # Mostra i numeri dei giri
+def create_plot(laps_sorted, times_sorted, num, race_name, race_year, driver_name, driver_surname):
+    # Imposta la dimensione della figura
+    plt.rcParams["figure.figsize"] = (15, 10)
 
-    #show the plot
-    plt.tight_layout()
+    # Crea i subplot dinamicamente
+    cols = (num + 1) // 2  # Numero di righe: arrotonda verso l'alto ogni 2 subplot
+    rows = 2 if num > 1 else 1  # Usa 2 colonne solo se ci sono più di 1 subplot
+
+    fig, axs = plt.subplots(rows, cols, squeeze=False)  # Crea la griglia di subplot
+    fig.suptitle(f"{race_name} {race_year}", fontsize=14)  # Titolo globale della figura
+
+    number_laps = []
+    for j in laps_sorted:
+        number_laps.append(max(j))
+
+    laps_total = max(number_laps)
+    laps_driver=[]
+
+    for i in range(num):
+        # Determina posizione del subplot
+        if i==0:
+            color='red'
+        elif i==1:
+            color='blue'
+        elif i==2:
+            color='green'
+        else:
+            color='yellow'
+
+        col, row = divmod(i, 2)  # Calcola riga e colonna
+        axs[row, col].bar(laps_sorted[i], times_sorted[i], color=color, edgecolor='black')
+        axs[row, col].set_title(f"Times for Lap for {driver_name[i]} {driver_surname[i]}", fontsize=10)
+        #axs[row, col].set_xlabel("Lap", fontsize=8)
+        #axs[row, col].set_ylabel("Time", fontsize=8)
+
+        laps_driver.append(max(laps_sorted[i]))
+        yticks=[]
+
+        for t in range(laps_driver[i]):
+            if t==1:
+                yticks.append(times_sorted[i][0])
+            if t%5==0:
+                yticks.append(times_sorted[i][t-1])
+            elif t==number_laps:
+                yticks.append(times_sorted[i][t-1])
+
+
+        axs[row, col].set_yticks(yticks)
+
+        # Rimuovi eventuali subplot vuoti
+    for j in range(num, rows * cols):
+        row, col = divmod(j, 2)
+        fig.delaxes(axs[row, col])  # Rimuovi assi vuoti
+
+    # Ottimizza il layout
+    plt.tight_layout(rect=[0, 0, 1, 0.95])  # Lascia spazio per il titolo globale
+    fig.subplots_adjust(hspace=0.5)
     plt.show()
-
 
 def compute_data_compare(lap_times,race_input,first_driver,second_driver,races,drivers):
 
@@ -339,12 +377,16 @@ def compute_data_compare(lap_times,race_input,first_driver,second_driver,races,d
     stat_driver(first_driver_name,first_driver_surname,laps_sorted_first,times_sorted_first,laps_row_first)
     stat_driver(second_driver_name,second_driver_surname,laps_sorted_second,times_sorted_second,laps_row_second)
 
-
+def seconds_to_time_2(seconds):
+    """Converti un tempo in secondi in formato stringa (mm:ss.SSS)."""
+    minutes = int(seconds // 60)
+    seconds = seconds % 60
+    return f"{minutes}:{seconds:.3f}"
 
 def stat_driver(name, surname, laps_sorted, times_sorted, laps_row):
 
-    fastest_lap = min(times_sorted)
-    slowest_lap = max (times_sorted)
+    fastest_lap = times_sorted[0]
+    slowest_lap = times_sorted[len(times_sorted)-1]
     biggest_delta = time_to_seconds(slowest_lap)-time_to_seconds(fastest_lap)
     times_in_seconds = [time_to_seconds(t) for t in times_sorted]
     total_time = sum(times_in_seconds)
@@ -353,9 +395,9 @@ def stat_driver(name, surname, laps_sorted, times_sorted, laps_row):
     i=0
     for t in laps_row.iloc[:, 4]:
         if t==fastest_lap :
-            fastest_lap_number = laps_row.iloc[i,2]
+            fastest_lap_number = int(laps_row.iloc[i,2])
         elif t == slowest_lap:
-            slowest_lap_number = laps_row.iloc[i,2]
+            slowest_lap_number = int(laps_row.iloc[i,2])
         i=i+1
 
     positions = list(laps_row.iloc[:, 3])
@@ -411,4 +453,58 @@ def stat_driver(name, surname, laps_sorted, times_sorted, laps_row):
     print("\n")
 
 
-#def create_double_plot
+def create_plot_v2(laps_sorted, times_sorted, num, race_name, race_year, driver_name, driver_surname):
+    # Imposta la dimensione della figura
+    plt.rcParams["figure.figsize"] = (15, 10)
+
+    # Determina le dimensioni della griglia dei subplot
+    cols = (num + 1) // 2  # Numero di righe: arrotonda verso l'alto ogni 2 subplot
+    rows = 2 if num > 1 else 1  # Usa 2 colonne solo se ci sono più di 1 subplot
+
+    fig, axs = plt.subplots(rows, cols, squeeze=False)  # Crea la griglia di subplot
+    fig.suptitle(f"{race_name} {race_year}", fontsize=14)  # Titolo globale della figura
+
+    for i in range(num):
+        # Determina posizione del subplot
+        col, row = divmod(i, 2)  # Calcola riga e colonna
+
+        # Converti i tempi in secondi
+        times_in_seconds = [time_to_seconds(t) for t in times_sorted[i]]
+
+        # Colori personalizzati per ogni subplot
+        colors = ['red', 'blue', 'green', 'yellow']
+        color = colors[i % len(colors)]
+
+        # Disegna il grafico
+        axs[row, col].bar(laps_sorted[i], times_in_seconds, color=color, edgecolor='black')
+        axs[row, col].set_title(f"Times for Lap for {driver_name[i]} {driver_surname[i]}", fontsize=10)
+        axs[row, col].set_xlabel("Lap", fontsize=8)
+        axs[row, col].set_ylabel("Time", fontsize=8)
+
+        # Calcola i tick dinamicamente per l'asse Y
+        yticks = np.linspace(min(times_in_seconds), max(times_in_seconds), num=6)  # 6 tick uniformi
+        axs[row, col].set_yticks(yticks)
+        axs[row, col].set_yticklabels([seconds_to_time(t) for t in yticks])  # Converti in formato mm:ss.SSS
+
+    # Rimuovi eventuali subplot vuoti
+    for j in range(num, rows * cols):
+        row, col = divmod(j, 2)
+        fig.delaxes(axs[row, col])  # Elimina subplot inutilizzati
+
+    # Ottimizza il layout
+    plt.tight_layout(rect=[0, 0, 1, 0.95])  # Lascia spazio per il titolo globale
+    fig.subplots_adjust(hspace=0.5)
+    plt.show()
+
+
+def time_to_seconds(time_str):
+    """Converti un tempo stringa (mm:ss.SSS) in secondi float."""
+    minutes, seconds = time_str.split(":")
+    return int(minutes) * 60 + float(seconds)
+
+
+def seconds_to_time(seconds):
+    """Converti un tempo in secondi in formato stringa (mm:ss.SSS)."""
+    minutes = int(seconds // 60)
+    seconds = seconds % 60
+    return f"{minutes}:{seconds:.3f}"

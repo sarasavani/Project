@@ -37,6 +37,7 @@ while True:
                 if control == 0 and (5 > num > 0):
                     driver_input, race_input = select_race(drivers, lap_times, races, num)
                     compute_data(race_input,driver_input,races, drivers, lap_times,num, 1)
+
                 elif control == 0:
                     error("You need to insert a number between 1 and 4!")
                     control = 1
@@ -68,7 +69,7 @@ while True:
                     control = 1
                 if control == 0 and (5 > num > 0):
                     driver_input, race_input = select_race(drivers, lap_times, races, num)
-                    compute_data(race_input, driver_input, races, drivers, lap_times, num, 1)
+                    compute_data(race_input, driver_input, races, drivers, lap_times, num, 2)
                 elif control == 0:
                     error("You need to insert a number between 1 and 4!")
                     control = 1

@@ -52,6 +52,13 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="\f1\archive_f1\qualifying.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="\f1\archive_f1\races.csv">
           <value>
             <Attribute>
