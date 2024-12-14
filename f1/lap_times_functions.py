@@ -2,20 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.pyplot import yticks
 
-
-#converts seconds into string
-def seconds_to_time_str(total_seconds):
-    # Calcola ore, minuti, secondi e millisecondi
-    hours = int(total_seconds // 3600)
-    minutes = int((total_seconds % 3600) // 60)
-    seconds = int(total_seconds % 60)
-    milliseconds = int((total_seconds - int(total_seconds)) * 1000)
-
-    # Crea la stringa formattata, rimuovendo ore e minuti se sono 0
-    if hours > 0:
-        return f"{hours}:{minutes:02}:{seconds:02}.{milliseconds:03}"
-    else:
-        return f"{minutes}:{seconds:02}.{milliseconds:03}"
+from lap_times_functions_v2 import *
 
 #given a driverId as an input
 #returns a list with all the races he competed in
@@ -72,25 +59,26 @@ def select_driver(flg,drivers) :
                   (drivers[drivers["driverId"] == driver_input]).iloc[:, [0, 3, 4, 5, 2]], "\n\n")
             return driver_input
 
-
 #call select_races_list() and select_driver() and make the user select a single race
 #that the driver they selected competed in
 #returns driver_input (driverId of the selected driver) and race_input (raceId of the selected race)
 def select_race(drivers, lap_times , races, num) :
+
     driver_input=[]
     races_driver =[]
     race_input=0
+
     for i in range(num):
 
         # select the driver
         driver_input.append(select_driver(i,drivers))
+
         # select only the races where the selected driver has competed
         races_driver.append(select_races_list(driver_input[i],lap_times,races))
 
 
         #if there is only one driver
         if num==1:
-            print("in")
             race_input=select_race_driver(races_driver,drivers, lap_times, races, driver_input)
             return driver_input, race_input
 
@@ -103,7 +91,8 @@ def select_race(drivers, lap_times , races, num) :
             race_input = 0
     error("Big Error")
 
-
+#given a single driverId, and a list of all its races, make the user choose a race, return race_input
+#(used in select_race)
 def select_race_driver(races_driver,drivers,lap_times,races,driver_input):
     ctr = 0
 
@@ -140,7 +129,11 @@ def select_race_driver(races_driver,drivers,lap_times,races,driver_input):
                     print("race Input")
                     return race_input
 
+#given a list of races_driver[], and a list of all their races, make the user choose a race, return race_input
+#(used in select_race)
 def select_race_drivers(races_driver,drivers,lap_times,races,driver_input,num):
+
+    #using a set select all the common races
     ids = []
     for j in range(num):
         ids.append({id for id, _, _ in races_driver[j]})
@@ -150,6 +143,7 @@ def select_race_drivers(races_driver,drivers,lap_times,races,driver_input,num):
         common_races= ids[0] & ids[1] & ids[2]
     if num==4:
         common_races= ids[0] & ids[1] & ids[2] & ids[3]
+
 
     ctr=0
     while True:
@@ -178,7 +172,7 @@ def select_race_drivers(races_driver,drivers,lap_times,races,driver_input,num):
                 else:
                     return race_input
         else:
-            error("Your drivers don't share any race !")
+            error("Your drivers don't share any race !") #make the user select other drivers
             for l in range(num):
                 driver_input[l] = select_driver(1, drivers)
                 races_driver[l] = select_races_list(driver_input[l], lap_times, races)
@@ -192,26 +186,9 @@ def select_race_drivers(races_driver,drivers,lap_times,races,driver_input,num):
             if num == 4:
                 common_races = ids[0] & ids[1] & ids[2] & ids[3]
 
-
-#given the error string, print the error
-def error(error_string) :
-    print("Error! " + error_string)
-
-#given the driverId, finds the row of the selected driver in drivers
-#returns row, the row in which the driver is located (the dataset is a bit random with indexes)
-def find_row_driver(driver_input,drivers) :
-    row=0
-    for d in drivers.iloc[:,0] :
-        if driver_input==d:
-            return row
-        else: row=row+1
-    error("driver not found")
-
-#given a time in a string format, convert it into seconds (used for sorting values)
-
 #select rows to analyze, order the data, select variables for the title, then call create_plot()
 def compute_data(race_input, driver_input, races, drivers, lap_times, num, flg) :
-    #Flg 0 == print stat, else dont print stats
+
     laps_row=[]
     laps_str=[]
     times=[]
@@ -237,11 +214,12 @@ def compute_data(race_input, driver_input, races, drivers, lap_times, num, flg) 
             #sort the data
             #combine the three lists and order them for the third element (times_in_seconds)
             sorted_data = sorted(zip(laps[i], times[i], times_in_seconds), key=lambda x: x[2])
-            #divide the three elements (the last one is not used)
-            laps_tmp, time_tmp, ignore_values = zip(*sorted_data)  # Scomponi sorted_data
 
-            laps_sorted.append(laps_tmp)  # Aggiungi laps alla lista
-            times_sorted.append(time_tmp)  # Aggiungi times alla lista
+            #divide the three elements (the last one is not used)
+            laps_tmp, time_tmp, ignore_values = zip(*sorted_data)
+
+            laps_sorted.append(laps_tmp)
+            times_sorted.append(time_tmp)
 
             index=find_row_driver(driver_input[i],drivers) #find the index
             driver_name.append(str(drivers.iloc[index,4]))
@@ -256,15 +234,14 @@ def compute_data(race_input, driver_input, races, drivers, lap_times, num, flg) 
         else:
             i = i + 1
 
-
+    #if you selected visualize
     if flg==1:
         create_plot(laps_sorted, times_sorted, num, race_name, race_year, driver_name, driver_surname)
 
+    #if you selected stats
     elif flg==0:
         for j in range(num):
             stat_driver(driver_name[j],driver_surname[j],laps_sorted[j],times_sorted[j],laps_row[j])
-
-
 
 def create_plot(laps_sorted, times_sorted, num, race_name, race_year, driver_name, driver_surname):
     # Imposta la dimensione della figura
@@ -275,7 +252,11 @@ def create_plot(laps_sorted, times_sorted, num, race_name, race_year, driver_nam
     rows = 2 if num > 1 else 1  # Usa 2 colonne solo se ci sono più di 1 subplot
 
     fig, axs = plt.subplots(rows, cols, squeeze=False)  # Crea la griglia di subplot
-    fig.suptitle(f"{race_name} {race_year}", fontsize=14)  # Titolo globale della figura
+    if num!=1:
+        fig.suptitle(f"{race_name} {race_year}", fontsize=14)  # Titolo globale della figura
+    else:
+        fig.suptitle(f"Times for Lap for {driver_name[0]} {driver_surname[0]} at The  {race_name} {race_year}", fontsize=14)  # Titolo globale della figura
+
 
     number_laps = []
     for j in laps_sorted:
@@ -297,9 +278,9 @@ def create_plot(laps_sorted, times_sorted, num, race_name, race_year, driver_nam
 
         col, row = divmod(i, 2)  # Calcola riga e colonna
         axs[row, col].bar(laps_sorted[i], times_sorted[i], color=color, edgecolor='black')
-        axs[row, col].set_title(f"Times for Lap for {driver_name[i]} {driver_surname[i]}", fontsize=10)
-        #axs[row, col].set_xlabel("Lap", fontsize=8)
-        #axs[row, col].set_ylabel("Time", fontsize=8)
+        if num!=1:
+         axs[row, col].set_title(f"Times for Lap for {driver_name[i]} {driver_surname[i]}", fontsize=10)
+
 
         laps_driver.append(max(laps_sorted[i]))
         yticks=[]
@@ -324,64 +305,6 @@ def create_plot(laps_sorted, times_sorted, num, race_name, race_year, driver_nam
     plt.tight_layout(rect=[0, 0, 1, 0.95])  # Lascia spazio per il titolo globale
     fig.subplots_adjust(hspace=0.5)
     plt.show()
-
-def compute_data_compare(lap_times,race_input,first_driver,second_driver,races,drivers):
-
-    laps_row_first = lap_times[(lap_times['raceId'] == race_input) & (lap_times['driverId'] == first_driver)]  # select the rows
-    laps_row_second = lap_times[(lap_times['raceId'] == race_input) & (lap_times['driverId'] == second_driver)]  # select the rows
-
-
-    laps_str_first = list(laps_row_first.iloc[:,2]) #select the laps
-    laps_first = [int(x) for x in laps_str_first]  #convert all elements in int
-    times_first= list((laps_row_first.iloc[:,4])) #select the times
-
-    laps_str_second = list(laps_row_second.iloc[:, 2])  # select the laps
-    laps_second = [int(x) for x in laps_str_second]  # convert all elements in int
-    times_second = list((laps_row_second.iloc[:, 4]))  # select the times
-
-    #convert times to sort them
-    times_in_seconds_1 = [time_to_seconds(t) for t in times_first]
-    times_in_seconds_2 = [time_to_seconds(t) for t in times_second]
-
-
-    #sort the data
-    #combine the three lists and order them for the third element (times_in_seconds)
-    sorted_data_first = sorted(zip(laps_first, times_first, times_in_seconds_1), key=lambda x: x[2])
-    #divide the three elements (the last one is not used)
-    laps_sorted_first, times_sorted_first, _ = zip(*sorted_data_first)
-
-    # combine the three lists and order them for the third element (times_in_seconds)
-    sorted_data_second = sorted(zip(laps_second, times_second, times_in_seconds_2), key=lambda x: x[2])
-    # divide the three elements (the last one is not used)
-    laps_sorted_second, times_sorted_second, _ = zip(*sorted_data_second)
-####### common
-    i = 0
-    for race in races.iloc[:, 0]:  # for each raceId in races
-        if race == race_input:  # if  raceId selected == raceId input we found our race
-            race_name = str(races.iloc[i, 4])
-            race_year = str(races.iloc[i, 1])
-            break
-        else:
-            i = i + 1
-
-#######not common
-    index_first = find_row_driver(first_driver, drivers)  # find the index
-    first_driver_name = str(drivers.iloc[index_first, 4])
-    first_driver_surname = str(drivers.iloc[index_first, 5])
-
-    index_second = find_row_driver(second_driver, drivers)  # find the index
-    second_driver_name = str(drivers.iloc[index_second, 4])
-    second_driver_surname = str(drivers.iloc[index_second, 5])
-
-    print("\n")
-    stat_driver(first_driver_name,first_driver_surname,laps_sorted_first,times_sorted_first,laps_row_first)
-    stat_driver(second_driver_name,second_driver_surname,laps_sorted_second,times_sorted_second,laps_row_second)
-
-def seconds_to_time_2(seconds):
-    """Converti un tempo in secondi in formato stringa (mm:ss.SSS)."""
-    minutes = int(seconds // 60)
-    seconds = seconds % 60
-    return f"{minutes}:{seconds:.3f}"
 
 def stat_driver(name, surname, laps_sorted, times_sorted, laps_row):
 
@@ -453,58 +376,78 @@ def stat_driver(name, surname, laps_sorted, times_sorted, laps_row):
     print("\n")
 
 
-def create_plot_v2(laps_sorted, times_sorted, num, race_name, race_year, driver_name, driver_surname):
-    # Imposta la dimensione della figura
-    plt.rcParams["figure.figsize"] = (15, 10)
+def races_grid(lap_times, races,drivers):
 
-    # Determina le dimensioni della griglia dei subplot
-    cols = (num + 1) // 2  # Numero di righe: arrotonda verso l'alto ogni 2 subplot
-    rows = 2 if num > 1 else 1  # Usa 2 colonne solo se ci sono più di 1 subplot
+    print_all_races(races)
 
-    fig, axs = plt.subplots(rows, cols, squeeze=False)  # Crea la griglia di subplot
-    fig.suptitle(f"{race_name} {race_year}", fontsize=14)  # Titolo globale della figura
+    while True:
+        try:
+            grand_prix_input = int(input("Select your Grand Prix from the ones above (insert the raceId): "))
+            if grand_prix_input not in lap_times["raceId"].values:
+                if 0>grand_prix_input>1144:
+                    error("Race not present in the database")
+                else:
+                    raise ValueError
+            break
+        except ValueError:
+            print("You need to insert a valid raceId!")
 
-    for i in range(num):
-        # Determina posizione del subplot
-        col, row = divmod(i, 2)  # Calcola riga e colonna
+    print("\nYou selected raceId:", grand_prix_input)
+    print(races[races["raceId"] == grand_prix_input].iloc[:, [0, 3, 4, 5, 2]], "\n")
 
-        # Converti i tempi in secondi
-        times_in_seconds = [time_to_seconds(t) for t in times_sorted[i]]
+    # Estrai driverId dei piloti che hanno corso nel Grand Prix selezionato
+    drivers_grand_prix = lap_times[lap_times["raceId"] == grand_prix_input]["driverId"].unique()
 
-        # Colori personalizzati per ogni subplot
-        colors = ['red', 'blue', 'green', 'yellow']
-        color = colors[i % len(colors)]
+    # Creazione della matrice con le posizioni dei piloti per ogni giro
+    matrix = []
+    laps = []
 
-        # Disegna il grafico
-        axs[row, col].bar(laps_sorted[i], times_in_seconds, color=color, edgecolor='black')
-        axs[row, col].set_title(f"Times for Lap for {driver_name[i]} {driver_surname[i]}", fontsize=10)
-        axs[row, col].set_xlabel("Lap", fontsize=8)
-        axs[row, col].set_ylabel("Time", fontsize=8)
+    for driver in drivers_grand_prix:
+        driver_lap_times = lap_times[
+            (lap_times["raceId"] == grand_prix_input) &
+            (lap_times["driverId"] == driver)
+        ].sort_values("lap")
 
-        # Calcola i tick dinamicamente per l'asse Y
-        yticks = np.linspace(min(times_in_seconds), max(times_in_seconds), num=6)  # 6 tick uniformi
-        axs[row, col].set_yticks(yticks)
-        axs[row, col].set_yticklabels([seconds_to_time(t) for t in yticks])  # Converti in formato mm:ss.SSS
+        laps.append(driver_lap_times["lap"].tolist())  # Lista dei giri
+        matrix.append(driver_lap_times["position"].tolist())  # Posizioni nei giri
 
-    # Rimuovi eventuali subplot vuoti
-    for j in range(num, rows * cols):
-        row, col = divmod(j, 2)
-        fig.delaxes(axs[row, col])  # Elimina subplot inutilizzati
+    plt.figure(figsize=(10, 6))
 
-    # Ottimizza il layout
-    plt.tight_layout(rect=[0, 0, 1, 0.95])  # Lascia spazio per il titolo globale
-    fig.subplots_adjust(hspace=0.5)
+
+    # Grafico per ogni pilota
+    for i, driver in enumerate(drivers_grand_prix):        # Ottenere il nome del pilota
+        driver_info = drivers[drivers['driverId'] == driver].iloc[0]
+        driver_label = f"{driver_info['forename']} {driver_info['surname']}"
+
+        plt.plot(laps[i], matrix[i])
+
+        x_position = laps[i][-1] + 0.5
+        y_position = matrix[i][-1]
+
+
+        plt.text(
+            x_position, y_position, driver_label,  # Coordina X e Y (aggiusta per evitare sovrapposizioni)
+            fontsize=8, color="black", ha='left', va='center',
+            bbox=dict(facecolor='none', edgecolor='none')
+        )
+
+    i = 0
+    for race in races.iloc[:, 0]:  # for each raceId in races
+        if race == grand_prix_input:  # if  raceId selected == raceId input we found our race
+            race_name = str(races.iloc[i, 4])
+            race_year = str(races.iloc[i, 1])
+            break
+        else:
+            i = i + 1
+
+    max_y = max(max(posizioni) for posizioni in matrix)  # Posizione massima
+    plt.yticks(range(1, max_y + 1))  # Mostra i numeri da 1 a max_y
+
+    # Impostazioni del grafico
+    plt.title(f"Driver Positions at {race_name} {race_year}")
+    plt.xlabel("Lap")
+    plt.ylabel("Position")
+    plt.gca().invert_yaxis()
+    plt.tight_layout()    # Inverti l'asse delle posizioni (1° posto in alto)
     plt.show()
 
-
-def time_to_seconds(time_str):
-    """Converti un tempo stringa (mm:ss.SSS) in secondi float."""
-    minutes, seconds = time_str.split(":")
-    return int(minutes) * 60 + float(seconds)
-
-
-def seconds_to_time(seconds):
-    """Converti un tempo in secondi in formato stringa (mm:ss.SSS)."""
-    minutes = int(seconds // 60)
-    seconds = seconds % 60
-    return f"{minutes}:{seconds:.3f}"

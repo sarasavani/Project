@@ -59,20 +59,8 @@ while True:
                     control = 1
 
         case 3:
-            control = 1
-            while control == 1:
-                control = 0
-                try:
-                    num = int(input("How many drivers you want to compare? (from 1 to 4) : "))
-                except:
-                    error("You need to insert a number between 1 and 4!")
-                    control = 1
-                if control == 0 and (5 > num > 0):
-                    driver_input, race_input = select_race(drivers, lap_times, races, num)
-                    compute_data(race_input, driver_input, races, drivers, lap_times, num, 2)
-                elif control == 0:
-                    error("You need to insert a number between 1 and 4!")
-                    control = 1
+            races_grid(lap_times,races,drivers)
+
         case 4:
             exit(0)
         case _:
