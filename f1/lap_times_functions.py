@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.pyplot import yticks
 
-from lap_times_functions_v2 import *
+from lap_times_functions_support import *
 
 #given a driverId as an input
 #returns a list with all the races he competed in
@@ -243,30 +243,33 @@ def compute_data(race_input, driver_input, races, drivers, lap_times, num, flg) 
         for j in range(num):
             stat_driver(driver_name[j],driver_surname[j],laps_sorted[j],times_sorted[j],laps_row[j])
 
+##FUNCTION 1
+#create plot for the time analysis, given the number of drivers (num)  and arrays for drivers names and surnames
 def create_plot(laps_sorted, times_sorted, num, race_name, race_year, driver_name, driver_surname):
-    # Imposta la dimensione della figura
-    plt.rcParams["figure.figsize"] = (15, 10)
+    plt.rcParams["figure.figsize"] = (15, 10) #set dimension of the plot
 
-    # Crea i subplot dinamicamente
-    cols = (num + 1) // 2  # Numero di righe: arrotonda verso l'alto ogni 2 subplot
-    rows = 2 if num > 1 else 1  # Usa 2 colonne solo se ci sono più di 1 subplot
+    #create the subplots dynamically, based on the number of drivers selected
+    cols = (num + 1) // 2
+    rows = 2 if num > 1 else 1
 
-    fig, axs = plt.subplots(rows, cols, squeeze=False)  # Crea la griglia di subplot
+    fig, axs = plt.subplots(rows, cols, squeeze=False)  # create a grid for sublots
     if num!=1:
-        fig.suptitle(f"{race_name} {race_year}", fontsize=14)  # Titolo globale della figura
+        fig.suptitle(f"{race_name} {race_year}", fontsize=14)  # global title for more than one driver (the specific driver will be specified later)
     else:
-        fig.suptitle(f"Times for Lap for {driver_name[0]} {driver_surname[0]} at The  {race_name} {race_year}", fontsize=14)  # Titolo globale della figura
+        fig.suptitle(f"Times for Lap for {driver_name[0]} {driver_surname[0]} at The  {race_name} {race_year}", fontsize=14)  # global title for one driver
 
 
+    #calculate the number of laps of the gp
     number_laps = []
     for j in laps_sorted:
         number_laps.append(max(j))
 
     laps_total = max(number_laps)
-    laps_driver=[]
+    laps_driver = []
 
     for i in range(num):
-        # Determina posizione del subplot
+
+        # colors of the subplot
         if i==0:
             color='red'
         elif i==1:
@@ -276,15 +279,15 @@ def create_plot(laps_sorted, times_sorted, num, race_name, race_year, driver_nam
         else:
             color='yellow'
 
-        col, row = divmod(i, 2)  # Calcola riga e colonna
+        col, row = divmod(i, 2)  # calculate row and coloumns
         axs[row, col].bar(laps_sorted[i], times_sorted[i], color=color, edgecolor='black')
         if num!=1:
-         axs[row, col].set_title(f"Times for Lap for {driver_name[i]} {driver_surname[i]}", fontsize=10)
+         axs[row, col].set_title(f"Times for Lap for {driver_name[i]} {driver_surname[i]}", fontsize=10) #subtitle for more than one driver (later)
 
+        laps_driver.append(max(laps_sorted[i])) #calculate the laps the driver has completed
 
-        laps_driver.append(max(laps_sorted[i]))
+        #show only first, last and one every 5 times in the plot
         yticks=[]
-
         for t in range(laps_driver[i]):
             if t==1:
                 yticks.append(times_sorted[i][0])
@@ -294,18 +297,22 @@ def create_plot(laps_sorted, times_sorted, num, race_name, race_year, driver_nam
                 yticks.append(times_sorted[i][t-1])
 
 
-        axs[row, col].set_yticks(yticks)
+        axs[row, col].set_yticks(yticks) #set the ticks on the y-axis
 
-        # Rimuovi eventuali subplot vuoti
+    #remove empty subplots
     for j in range(num, rows * cols):
         row, col = divmod(j, 2)
-        fig.delaxes(axs[row, col])  # Rimuovi assi vuoti
+        fig.delaxes(axs[row, col])
 
-    # Ottimizza il layout
-    plt.tight_layout(rect=[0, 0, 1, 0.95])  # Lascia spazio per il titolo globale
+    #layout of the plot
+    plt.style.use('dark_background')
+    plt.tight_layout(rect=[0, 0, 1, 0.95])  #space for the global title
     fig.subplots_adjust(hspace=0.5)
     plt.show()
 
+
+##FUNCTION 2
+#calculate the stats FOR EACH DRIVER (cycle in ln 244) given driver name and surname
 def stat_driver(name, surname, laps_sorted, times_sorted, laps_row):
 
     fastest_lap = times_sorted[0]
@@ -315,6 +322,7 @@ def stat_driver(name, surname, laps_sorted, times_sorted, laps_row):
     total_time = sum(times_in_seconds)
     medium_pace = total_time / len(laps_sorted)
 
+    #calculate the lap of the fastest and slowest time
     i=0
     for t in laps_row.iloc[:, 4]:
         if t==fastest_lap :
@@ -328,6 +336,8 @@ def stat_driver(name, surname, laps_sorted, times_sorted, laps_row):
     worst_position= max(positions)
     best_laps=[]
     worst_laps=[]
+
+    #calculate the lap(s) with the best and worst position
     i=0
     for t in laps_row.iloc[:, 3]:
         if t==best_position:
@@ -335,13 +345,11 @@ def stat_driver(name, surname, laps_sorted, times_sorted, laps_row):
         elif t==worst_position:
             worst_laps.append(laps_row.iloc[i,2])
         i=i+1
-
+    best_laps_int = [int(x) for x in best_laps]
+    worst_laps_int = [int(x) for x in worst_laps]
 
     starting_position= laps_row.iloc[min(laps_sorted) - 1,3]
     finishing_position = laps_row.iloc[max(laps_sorted) - 1,3]
-
-    best_laps_int = [int(x) for x in best_laps]
-    worst_laps_int = [int(x) for x in worst_laps]
 
 
     ###PRINT
@@ -357,6 +365,7 @@ def stat_driver(name, surname, laps_sorted, times_sorted, laps_row):
     print("Starting Position: ", starting_position)
     print("Finishing Position: ",finishing_position )
 
+    #calculate if the driver gained/lost positions or remained the same
     if starting_position > finishing_position:
         delta_positions = starting_position - finishing_position
         print("Positions Gained: ", delta_positions)
@@ -366,7 +375,6 @@ def stat_driver(name, surname, laps_sorted, times_sorted, laps_row):
     else:
         delta_position = 0
         print("No Positions Gained or Lost")
-
     if best_position==worst_position :
         print("The driver didnt change its position during the race (",best_position,")")
     else:
@@ -375,8 +383,9 @@ def stat_driver(name, surname, laps_sorted, times_sorted, laps_row):
 
     print("\n")
 
-
-def races_grid(lap_times, races,drivers):
+##FUNCTION 3
+#make the user choose a race and create a plot with the positions of the drivers in that gp
+def races_grid(lap_times,races,drivers):
 
     print_all_races(races)
 
@@ -384,21 +393,21 @@ def races_grid(lap_times, races,drivers):
         try:
             grand_prix_input = int(input("Select your Grand Prix from the ones above (insert the raceId): "))
             if grand_prix_input not in lap_times["raceId"].values:
-                if 0>grand_prix_input>1144:
+                if 1<=grand_prix_input<=1144:
                     error("Race not present in the database")
-                else:
-                    raise ValueError
-            break
+            else:
+                break
         except ValueError:
             print("You need to insert a valid raceId!")
+
 
     print("\nYou selected raceId:", grand_prix_input)
     print(races[races["raceId"] == grand_prix_input].iloc[:, [0, 3, 4, 5, 2]], "\n")
 
-    # Estrai driverId dei piloti che hanno corso nel Grand Prix selezionato
+    #extract the driverId of the drivers in that gp
     drivers_grand_prix = lap_times[lap_times["raceId"] == grand_prix_input]["driverId"].unique()
 
-    # Creazione della matrice con le posizioni dei piloti per ogni giro
+    #create matrix with positions of the drivers
     matrix = []
     laps = []
 
@@ -411,11 +420,20 @@ def races_grid(lap_times, races,drivers):
         laps.append(driver_lap_times["lap"].tolist())  # Lista dei giri
         matrix.append(driver_lap_times["position"].tolist())  # Posizioni nei giri
 
-    plt.figure(figsize=(10, 6))
+    plt.figure(figsize=(10, 6), facecolor='black')
+
+    #set color to black
+    ax = plt.gca()
+    ax.set_facecolor('black')
+
+    # set colors to white (to see them with dark background
+    ax.tick_params(colors='white')
+    for spine in ax.spines.values():
+        spine.set_color('white')
 
 
-    # Grafico per ogni pilota
-    for i, driver in enumerate(drivers_grand_prix):        # Ottenere il nome del pilota
+    #graph for each driver
+    for i, driver in enumerate(drivers_grand_prix):
         driver_info = drivers[drivers['driverId'] == driver].iloc[0]
         driver_label = f"{driver_info['forename']} {driver_info['surname']}"
 
@@ -424,12 +442,13 @@ def races_grid(lap_times, races,drivers):
         x_position = laps[i][-1] + 0.5
         y_position = matrix[i][-1]
 
-
         plt.text(
             x_position, y_position, driver_label,  # Coordina X e Y (aggiusta per evitare sovrapposizioni)
-            fontsize=8, color="black", ha='left', va='center',
+            fontsize=8, color="white", ha='left', va='center',
             bbox=dict(facecolor='none', edgecolor='none')
         )
+
+
 
     i = 0
     for race in races.iloc[:, 0]:  # for each raceId in races
@@ -443,11 +462,11 @@ def races_grid(lap_times, races,drivers):
     max_y = max(max(posizioni) for posizioni in matrix)  # Posizione massima
     plt.yticks(range(1, max_y + 1))  # Mostra i numeri da 1 a max_y
 
-    # Impostazioni del grafico
-    plt.title(f"Driver Positions at {race_name} {race_year}")
-    plt.xlabel("Lap")
-    plt.ylabel("Position")
-    plt.gca().invert_yaxis()
-    plt.tight_layout()    # Inverti l'asse delle posizioni (1° posto in alto)
+    #plot settings
+    plt.title(f"Driver Positions at {race_name} {race_year}", color='white')
+    plt.xlabel("Lap",color='white')
+    plt.ylabel("Position",color='white')
+    plt.gca().invert_yaxis() #invert y-axis (1st place up)
+    plt.tight_layout()
     plt.show()
 

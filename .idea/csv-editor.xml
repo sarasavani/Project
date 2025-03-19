@@ -94,6 +94,13 @@
             </Attribute>
           </value>
         </entry>
+        <entry key="\stat\HybridDataset.csv">
+          <value>
+            <Attribute>
+              <option name="separator" value="," />
+            </Attribute>
+          </value>
+        </entry>
         <entry key="\unitn election affluence\Tabella_Affluenza_Comma.csv">
           <value>
             <Attribute>

@@ -1,20 +1,17 @@
 import struct
-
 import pandas as pd
 from lap_times_functions import *
-
 
 lap_times = pd.read_csv("archive_f1/lap_times.csv")
 drivers = pd.read_csv("archive_f1/drivers.csv")
 races = pd.read_csv("archive_f1/races.csv")
 control=0
 
-
 while True:
     if control==0:
         print("What do you want to do? ")
-        print("1. Visualize Lap Times for driver(s) in a Grand Prix")
-        print("2. See Statistics of drivers in a Grand Prix")
+        print("1. Visualize Lap Times for driver(s) in a Grand Prix (up to 4)")
+        print("2. See Statistics of driver(s) in a Grand Prix (up to 4)")
         print("3. See Position Variation Graph for driver(s) in a Grand Prix")
         print("4. Exit")
 
@@ -22,7 +19,7 @@ while True:
     try:
         user_input = int(input("Select  an Action: "))
     except:
-        user_input = -1
+        user_input = -13
 
     match user_input:
         case 1:
@@ -60,7 +57,6 @@ while True:
 
         case 3:
             races_grid(lap_times,races,drivers)
-
         case 4:
             exit(0)
         case _:
