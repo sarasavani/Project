@@ -1,0 +1,9 @@
+About:
+
+This program uses f1 data (https://www.kaggle.com/datasets/rohanrao/formula-1-world-championship-1950-2020) to make three types of analysis:
+- Graphs that (for a given GP) compare the times for lap of up to 4 drivers
+- Statistics about up to 4 drivers for a given GP (fastest and slowest lap and in which lap, best and worst postitions and in which lap, starting and finishing positions, positions gained or lost,
+total time and medium pace)
+- Graph that depicts the variations of positions of drivers in a selected GP
+
+This was done using Phyton and the libraries pandas, matplotlib and numpy
